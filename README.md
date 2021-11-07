@@ -1,8 +1,8 @@
 # FreeZoom
 📱 This is a mobile application that works exactly like the popular zoom and skype application.<br><br>
 📜This application was built with firebase, java, xml and jason<br>
-📜The Ui was built with adobe xd and xml
-Features:<br>
+📜The Ui was built with adobe xd and xml<br>
+Features:<br><br>
 ⭐ HD video and audio. Cost: <br>
 ⭐ Participant camera feed. <br>
 ⭐ Audio-only conferencing. <br>
