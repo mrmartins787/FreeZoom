@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "368449774657",
+    "project_id": "freezoom-3e906",
+    "storage_bucket": "freezoom-3e906.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368449774657:android:1ecdb25e689a7669fb52c0",
+        "android_client_info": {
+          "package_name": "com.freezone.freezone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "368449774657-2cujme0s72iqt6rtcp90sqecu0nm1ikj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freezone.freezone",
+            "certificate_hash": "9abac7b56003424ee419001057b5eb2d6915e1f7"
+          }
+        },
+        {
+          "client_id": "368449774657-8jdu4knmfaou5r99jme1qp5ghls0gr39.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsciiR72Lme9lSyzHQsDmT2prLQm5vBoQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "368449774657-8jdu4knmfaou5r99jme1qp5ghls0gr39.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

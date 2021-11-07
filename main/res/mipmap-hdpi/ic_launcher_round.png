@@ -1,0 +1,147 @@
+/*
+ * Copyright 2018 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package androidx.fragment.app;
+
+import static androidx.annotation.RestrictTo.Scope.LIBRARY_GROUP_PREFIX;
+import static androidx.fragment.app.FragmentManager.TAG;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+
+import androidx.annotation.IntDef;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.MainThread;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+import androidx.annotation.StyleRes;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewTreeLifecycleOwner;
+import androidx.lifecycle.ViewTreeViewModelStoreOwner;
+import androidx.savedstate.ViewTreeSavedStateRegistryOwner;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+/**
+ * Static library support version of the framework's {@link android.app.DialogFragment}.
+ * Used to write apps that run on platforms prior to Android 3.0.  When running
+ * on Android 3.0 or above, this implementation is still used; it does not try
+ * to switch to the framework's implementation.  See the framework SDK
+ * documentation for a class overview.
+ */
+public class DialogFragment extends Fragment
+        implements DialogInterface.OnCancelListener, DialogInterface.OnDismissListener {
+
+    /** @hide */
+    @RestrictTo(LIBRARY_GROUP_PREFIX)
+    @IntDef({STYLE_NORMAL, STYLE_NO_TITLE, STYLE_NO_FRAME, STYLE_NO_INPUT})
+    @Retention(RetentionPolicy.SOURCE)
+    private @interface DialogStyle {}
+
+    /**
+     * Style for {@link #setStyle(int, int)}: a basic,
+     * normal dialog.
+     */
+    public static final int STYLE_NORMAL = 0;
+
+    /**
+     * Style for {@link #setStyle(int, int)}: don't include
+     * a title area.
+     */
+    public static final int STYLE_NO_TITLE = 1;
+
+    /**
+     * Style for {@link #setStyle(int, int)}: don't draw
+     * any frame at all; the view hierarchy returned by {@link #onCreateView}
+     * is entirely responsible for drawing the dialog.
+     */
+    public static final int STYLE_NO_FRAME = 2;
+
+    /**
+     * Style for {@link #setStyle(int, int)}: like
+     * {@link #STYLE_NO_FRAME}, but also disables all input to the dialog.
+     * The user can not touch it, and its window will not receive input focus.
+     */
+    public static final int STYLE_NO_INPUT = 3;
+
+    private static final String SAVED_DIALOG_STATE_TAG = "android:savedDialogState";
+    private static final String SAVED_STYLE = "android:style";
+    private static final String SAVED_THEME = "android:theme";
+    private static final String SAVED_CANCELABLE = "android:cancelable";
+    private static final String SAVED_SHOWS_DIALOG = "android:showsDialog";
+    private static final String SAVED_BACK_STACK_ID = "android:backStackId";
+    /**
+     * Copied from {@link Dialog}.
+     */
+    private static final String SAVED_INTERNAL_DIALOG_SHOWING = "android:dialogShowing";
+
+    private Handler mHandler;
+    private Runnable mDismissRunnable = new Runnable() {
+        @SuppressLint("SyntheticAccessor")
+        @Override
+        public void run() {
+            mOnDismissListener.onDismiss(mDialog);
+        }
+    };
+
+    private DialogInterface.OnCancelListener mOnCancelListener =
+            new DialogInterface.OnCancelListener() {
+        @SuppressLint("SyntheticAccessor")
+        @Override
+        public void onCancel(@Nullable DialogInterface dialog) {
+            if (mDialog != null) {
+                DialogFragment.this.onCancel(mDialog);
+            }
+        }
+    };
+
+    private DialogInterface.OnDismissListener mOnDismissListener =
+            new DialogInterface.OnDismissListener() {
+        @SuppressLint("SyntheticAccessor")
+        @Override
+        public void onDismiss(@Nullable DialogInterface dialog) {
+            if (mDialog != null) {
+                DialogFragment.this.onDismiss(mDialog);
+            }
+        }
+    };
+
+    private int mStyle = STYLE_NORMAL;
+    private int mTheme = 0;
+    private boolean mCancelable = true;
+    private boolean mShowsDialog = true;
+    private int mBackStackId = -1;
+    private boolean mCreatingDialog;
+    private Observer<LifecycleOwner> mObserver = new Observer<LifecycleOwner>() {
+        @SuppressLint("SyntheticAccessor")
+        @Override
+        public void onChanged(LifecycleOwner lifecycleOwner) {
+            if (lifecycleOwner !=
